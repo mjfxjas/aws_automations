@@ -1,0 +1,69 @@
+# AWS Automation Configuration Example
+# Copy this file to config.yaml and adjust settings for your environment
+
+region_name: us-east-1
+
+# S3 Cleanup Configuration
+s3:
+  bucket_prefixes: ["sandbox-", "temp-"]
+  target_buckets: []
+  ignore_buckets: ["production-bucket", "backup-bucket"]
+  bucket_retention_days: 7
+  object_retention_days: 30
+  delete_empty_buckets: false
+  delete_all_objects: false
+  include_versioned_objects: true
+  max_delete_batch: 1000
+  require_tag: null
+    # key: "cleanup"
+    # value: "true"
+
+# EC2 Cleanup Configuration
+ec2:
+  instance_retention_days: 7
+  target_states: ["stopped"]
+  ignore_instances: []
+  target_instances: []
+  name_patterns: ["temp-*", "test-*", "sandbox-*"]
+  delete_volumes: true
+  require_tag: null
+
+# Lambda Cleanup Configuration
+lambda:
+  function_retention_days: 30
+  keep_versions: 3
+  ignore_functions: ["production-function"]
+  target_functions: []
+  name_patterns: ["temp-*", "test-*", "sandbox-*"]
+  delete_logs: true
+  require_tag: null
+
+# EBS Cleanup Configuration
+ebs:
+  volume_retention_days: 7
+  snapshot_retention_days: 30
+  min_volume_size_gb: 1
+  target_states: ["available"]
+  ignore_volumes: []
+  target_snapshots: []
+  require_tag: null
+
+# CloudWatch Logs Cleanup Configuration
+cloudwatch:
+  log_group_retention_days: 30
+  log_stream_retention_days: 7
+  ignore_log_groups: ["/aws/lambda/production-*"]
+  target_log_groups: []
+  name_patterns: ["temp-*", "test-*", "sandbox-*"]
+  require_tag: null
+
+# IAM Cleanup Configuration
+iam:
+  role_retention_days: 30
+  user_retention_days: 30
+  policy_retention_days: 30
+  ignore_roles: ["production-role"]
+  ignore_users: ["admin-user"]
+  ignore_policies: ["production-policy"]
+  name_patterns: ["temp-*", "test-*", "sandbox-*"]
+  require_tag: null
