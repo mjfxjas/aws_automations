@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import List, Optional
+from typing import Callable, Dict, List, Optional
 
 import boto3
 from botocore.exceptions import ClientError
@@ -112,7 +112,13 @@ def delete_log_stream(logs_client, log_group_name: str, log_stream_name: str, dr
         return False
 
 
-def run_cloudwatch_cleanup(config: dict, *, dry_run: bool = True, session: Optional[boto3.Session] = None) -> dict:
+def run_cloudwatch_cleanup(
+    config: dict,
+    *,
+    dry_run: bool = True,
+    session: Optional[boto3.Session] = None,
+    progress_callback: Optional[Callable[[Dict[str, object]], None]] = None,
+) -> dict:
     now = datetime.now(timezone.utc)
     sess = session or boto3.Session(region_name=config.get("region_name"))
     logs_client = sess.client("logs", region_name=config.get("region_name"))
@@ -137,6 +143,17 @@ def run_cloudwatch_cleanup(config: dict, *, dry_run: bool = True, session: Optio
         if should_target_log_group(log_group, config, now, logs_client):
             logger.info("Processing log group %s", log_group_name)
             
+            if progress_callback:
+                progress_callback(
+                    {
+                        "resource": log_group_name,
+                        "resource_type": "log_group",
+                        "status": "planned",
+                        "streams_deleted": 0,
+                        "deleted": 0,
+                    }
+                )
+            
             if delete_log_group(logs_client, log_group_name, dry_run):
                 summary["log_groups_deleted"] += 1
             
@@ -144,6 +161,17 @@ def run_cloudwatch_cleanup(config: dict, *, dry_run: bool = True, session: Optio
                 "log_group_name": log_group_name,
                 "creation_time": log_group["creationTime"],
             })
+            
+            if progress_callback:
+                progress_callback(
+                    {
+                        "resource": log_group_name,
+                        "resource_type": "log_group",
+                        "status": "completed",
+                        "streams_deleted": 0,
+                        "deleted": 1 if not dry_run else 0,
+                    }
+                )
         else:
             # Check for old log streams within the group
             try:
@@ -162,6 +190,16 @@ def run_cloudwatch_cleanup(config: dict, *, dry_run: bool = True, session: Optio
                         "log_group_name": log_group_name,
                         "streams_deleted": streams_deleted,
                     })
+                    if progress_callback:
+                        progress_callback(
+                            {
+                                "resource": log_group_name,
+                                "resource_type": "log_group",
+                                "status": "completed",
+                                "streams_deleted": streams_deleted,
+                                "deleted": 0,
+                            }
+                        )
             except ClientError as exc:
                 logger.warning("Could not process streams for %s: %s", log_group_name, exc)
     

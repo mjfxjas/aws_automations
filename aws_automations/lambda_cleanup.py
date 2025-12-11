@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import List, Optional
+from typing import Callable, Dict, List, Optional
 
 import boto3
 from botocore.exceptions import ClientError
@@ -147,7 +147,13 @@ def delete_log_group(logs_client, log_group_name: str, dry_run: bool) -> bool:
         return False
 
 
-def run_lambda_cleanup(config: dict, *, dry_run: bool = True, session: Optional[boto3.Session] = None) -> dict:
+def run_lambda_cleanup(
+    config: dict,
+    *,
+    dry_run: bool = True,
+    session: Optional[boto3.Session] = None,
+    progress_callback: Optional[Callable[[Dict[str, object]], None]] = None,
+) -> dict:
     now = datetime.now(timezone.utc)
     sess = session or boto3.Session(region_name=config.get("region_name"))
     lambda_client = sess.client("lambda", region_name=config.get("region_name"))
@@ -173,6 +179,16 @@ def run_lambda_cleanup(config: dict, *, dry_run: bool = True, session: Optional[
             continue
         
         logger.info("Processing function %s", function_name)
+        if progress_callback:
+            progress_callback(
+                {
+                    "resource": function_name,
+                    "resource_type": "function",
+                    "status": "planned",
+                    "versions_deleted": 0,
+                    "deleted": 0,
+                }
+            )
         
         # Delete old versions first
         versions_deleted = delete_function_versions(
@@ -197,5 +213,16 @@ def run_lambda_cleanup(config: dict, *, dry_run: bool = True, session: Optional[
             "function_name": function_name,
             "versions_deleted": versions_deleted,
         })
+        
+        if progress_callback:
+            progress_callback(
+                {
+                    "resource": function_name,
+                    "resource_type": "function",
+                    "status": "completed",
+                    "versions_deleted": versions_deleted,
+                    "deleted": 1 if not dry_run else 0,
+                }
+            )
     
     return summary

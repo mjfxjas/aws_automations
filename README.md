@@ -24,7 +24,7 @@ Copy `config.example.yaml` to `config.yaml` and adjust:
 - `include_versioned_objects`, `delete_empty_buckets`
 - Optional `require_tag: { key, value }`
 
-## Run
+## Run (S3 direct)
 Dry-run (default):
 ```bash
 python -m aws_automations.s3_cleanup --config config.yaml
@@ -53,6 +53,20 @@ python -m aws_automations.s3_cleanup --config config.yaml --include temp-bucket 
 Toggle live rendering:
 ```bash
 python -m aws_automations.s3_cleanup --config config.yaml --no-live
+```
+
+## Run (multi-service orchestrator)
+Clean up one or all services with a live table (default on TTY):
+```bash
+python -m aws_automations.main --config config.yaml --service all --live
+```
+Focus on a single service (e.g., EC2) in dry-run:
+```bash
+python -m aws_automations.main --config config.yaml --service ec2
+```
+Emit JSON summary (suppresses live UI):
+```bash
+python -m aws_automations.main --config config.yaml --service lambda --json
 ```
 
 Safety switches:

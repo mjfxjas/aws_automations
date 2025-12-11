@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import List, Optional
+from typing import Callable, Dict, List, Optional
 
 import boto3
 from botocore.exceptions import ClientError
@@ -107,7 +107,13 @@ def delete_snapshot(ec2_client, snapshot_id: str, dry_run: bool) -> bool:
         return False
 
 
-def run_ebs_cleanup(config: dict, *, dry_run: bool = True, session: Optional[boto3.Session] = None) -> dict:
+def run_ebs_cleanup(
+    config: dict,
+    *,
+    dry_run: bool = True,
+    session: Optional[boto3.Session] = None,
+    progress_callback: Optional[Callable[[Dict[str, object]], None]] = None,
+) -> dict:
     now = datetime.now(timezone.utc)
     sess = session or boto3.Session(region_name=config.get("region_name"))
     ec2_client = sess.client("ec2", region_name=config.get("region_name"))
@@ -138,8 +144,28 @@ def run_ebs_cleanup(config: dict, *, dry_run: bool = True, session: Optional[bot
         volume_id = volume["VolumeId"]
         logger.info("Processing volume %s", volume_id)
         
+        if progress_callback:
+            progress_callback(
+                {
+                    "resource": volume_id,
+                    "resource_type": "volume",
+                    "status": "planned",
+                    "deleted": 0,
+                }
+            )
+        
         if delete_volume(ec2_client, volume_id, dry_run):
             summary["volumes_deleted"] += 1
+
+        if progress_callback:
+            progress_callback(
+                {
+                    "resource": volume_id,
+                    "resource_type": "volume",
+                    "status": "completed",
+                    "deleted": 1 if not dry_run else 0,
+                }
+            )
         
         summary["volume_reports"].append({
             "volume_id": volume_id,
@@ -155,6 +181,16 @@ def run_ebs_cleanup(config: dict, *, dry_run: bool = True, session: Optional[bot
         snapshot_id = snapshot["SnapshotId"]
         logger.info("Processing snapshot %s", snapshot_id)
         
+        if progress_callback:
+            progress_callback(
+                {
+                    "resource": snapshot_id,
+                    "resource_type": "snapshot",
+                    "status": "planned",
+                    "deleted": 0,
+                }
+            )
+        
         if delete_snapshot(ec2_client, snapshot_id, dry_run):
             summary["snapshots_deleted"] += 1
         
@@ -163,5 +199,15 @@ def run_ebs_cleanup(config: dict, *, dry_run: bool = True, session: Optional[bot
             "state": snapshot["State"],
             "volume_size": snapshot["VolumeSize"],
         })
+        
+        if progress_callback:
+            progress_callback(
+                {
+                    "resource": snapshot_id,
+                    "resource_type": "snapshot",
+                    "status": "completed",
+                    "deleted": 1 if not dry_run else 0,
+                }
+            )
     
     return summary

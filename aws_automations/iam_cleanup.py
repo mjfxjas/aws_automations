@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import List, Optional
+from typing import Callable, Dict, List, Optional
 
 import boto3
 from botocore.exceptions import ClientError
@@ -228,7 +228,13 @@ def delete_policy(iam_client, policy_arn: str, dry_run: bool) -> bool:
         return False
 
 
-def run_iam_cleanup(config: dict, *, dry_run: bool = True, session: Optional[boto3.Session] = None) -> dict:
+def run_iam_cleanup(
+    config: dict,
+    *,
+    dry_run: bool = True,
+    session: Optional[boto3.Session] = None,
+    progress_callback: Optional[Callable[[Dict[str, object]], None]] = None,
+) -> dict:
     now = datetime.now(timezone.utc)
     sess = session or boto3.Session(region_name=config.get("region_name"))
     iam_client = sess.client("iam")
@@ -269,6 +275,16 @@ def run_iam_cleanup(config: dict, *, dry_run: bool = True, session: Optional[bot
         role_name = role["RoleName"]
         logger.info("Processing role %s", role_name)
         
+        if progress_callback:
+            progress_callback(
+                {
+                    "resource": role_name,
+                    "resource_type": "role",
+                    "status": "planned",
+                    "deleted": 0,
+                }
+            )
+        
         if delete_role(iam_client, role_name, dry_run):
             summary["roles_deleted"] += 1
         
@@ -276,6 +292,16 @@ def run_iam_cleanup(config: dict, *, dry_run: bool = True, session: Optional[bot
             "resource_type": "role",
             "resource_name": role_name,
         })
+        
+        if progress_callback:
+            progress_callback(
+                {
+                    "resource": role_name,
+                    "resource_type": "role",
+                    "status": "completed",
+                    "deleted": 1 if not dry_run else 0,
+                }
+            )
     
     # Process users
     for user in users:
@@ -285,6 +311,16 @@ def run_iam_cleanup(config: dict, *, dry_run: bool = True, session: Optional[bot
         user_name = user["UserName"]
         logger.info("Processing user %s", user_name)
         
+        if progress_callback:
+            progress_callback(
+                {
+                    "resource": user_name,
+                    "resource_type": "user",
+                    "status": "planned",
+                    "deleted": 0,
+                }
+            )
+        
         if delete_user(iam_client, user_name, dry_run):
             summary["users_deleted"] += 1
         
@@ -292,6 +328,16 @@ def run_iam_cleanup(config: dict, *, dry_run: bool = True, session: Optional[bot
             "resource_type": "user",
             "resource_name": user_name,
         })
+        
+        if progress_callback:
+            progress_callback(
+                {
+                    "resource": user_name,
+                    "resource_type": "user",
+                    "status": "completed",
+                    "deleted": 1 if not dry_run else 0,
+                }
+            )
     
     # Process policies
     for policy in policies:
@@ -302,6 +348,16 @@ def run_iam_cleanup(config: dict, *, dry_run: bool = True, session: Optional[bot
         policy_arn = policy["Arn"]
         logger.info("Processing policy %s", policy_name)
         
+        if progress_callback:
+            progress_callback(
+                {
+                    "resource": policy_name,
+                    "resource_type": "policy",
+                    "status": "planned",
+                    "deleted": 0,
+                }
+            )
+        
         if delete_policy(iam_client, policy_arn, dry_run):
             summary["policies_deleted"] += 1
         
@@ -309,5 +365,15 @@ def run_iam_cleanup(config: dict, *, dry_run: bool = True, session: Optional[bot
             "resource_type": "policy",
             "resource_name": policy_name,
         })
+        
+        if progress_callback:
+            progress_callback(
+                {
+                    "resource": policy_name,
+                    "resource_type": "policy",
+                    "status": "completed",
+                    "deleted": 1 if not dry_run else 0,
+                }
+            )
     
     return summary
