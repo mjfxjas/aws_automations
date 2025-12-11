@@ -19,6 +19,8 @@ aws_automations/
 
 ### Main Package (`aws_automations/`)
 - **`main.py`**: CLI entry point and argument parsing
+- **`menu.py`**: Interactive menu system with Rich UI
+- **`start.py`**: Entry point for interactive menu
 - **`config.py`**: Configuration loading and validation
 - **Service Modules**: Individual cleanup implementations
   - `s3_cleanup.py` - S3 buckets and objects
@@ -68,14 +70,23 @@ class ServiceCleanup:
 
 ### CLI Flow
 ```
-main.py → config.py → service_modules → AWS APIs
-    ↓         ↓            ↓              ↓
-  args    validation   filtering      operations
-    ↓         ↓            ↓              ↓
- output   error_handling  reporting    results
+┌─ Interactive Menu ─┐    ┌─ Direct CLI ─┐
+│   menu.py          │    │   main.py    │
+│   start.py         │    │              │
+└────────┬───────────┘    └──────┬───────┘
+         │                       │
+         └───────┬───────────────┘
+                 ↓
+         config.py → service_modules → AWS APIs
+             ↓            ↓              ↓
+        validation   filtering      operations
+             ↓            ↓              ↓
+       error_handling  reporting    results
 ```
 
 ### Service Integration
+- **Interactive Menu**: Rich-formatted guided interface (`aws-cleanup-menu`)
+- **Direct CLI**: Command-line interface (`aws-cleanup`)
 - **Independent Modules**: Each service can run standalone
 - **Shared Configuration**: Common config patterns across services
 - **Unified Reporting**: Consistent output format and structure

@@ -55,6 +55,16 @@ Toggle live rendering:
 python -m aws_automations.s3_cleanup --config config.yaml --no-live
 ```
 
+## Run (Interactive Menu)
+Start the interactive menu for guided cleanup:
+```bash
+aws-cleanup-menu
+```
+Or run directly:
+```bash
+python -m aws_automations.start
+```
+
 ## Run (multi-service orchestrator)
 Clean up one or all services with a live table (default on TTY):
 ```bash

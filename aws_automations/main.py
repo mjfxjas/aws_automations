@@ -44,6 +44,7 @@ def parse_args() -> argparse.Namespace:
                        default="all", help="Service to clean up")
     parser.add_argument("--json", action="store_true", help="Output results as JSON")
     parser.add_argument("--verbose", action="store_true", help="Enable debug logging")
+    parser.add_argument("--interactive", action="store_true", help="Enable interactive approval for each resource")
     parser.add_argument(
         "--live",
         action=argparse.BooleanOptionalAction,

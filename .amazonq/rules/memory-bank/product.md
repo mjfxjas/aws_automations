@@ -12,7 +12,9 @@ AWS Automations is a portfolio-ready multi-service cleanup tool that automatical
 ## Key Features
 
 ### Core Capabilities
+- **Interactive Menu**: Rich-formatted guided interface for easy operation
 - **Dry-Run Mode**: All operations preview changes before execution
+- **Live Progress Display**: Real-time TTY rendering with Rich tables
 - **Configurable Filters**: Age-based retention, name patterns, tag requirements, and service-specific rules
 - **Batch Operations**: Efficient processing with AWS pagination and batching
 - **Detailed Reporting**: Comprehensive output with JSON format support
@@ -27,10 +29,11 @@ AWS Automations is a portfolio-ready multi-service cleanup tool that automatical
 6. **IAM**: Role, user, and policy cleanup with dependency handling
 
 ### Advanced Features
-- **Live Planning**: Real-time TTY rendering for S3 operations
+- **Interactive Menu System**: Color-coded service selection with safety confirmations
+- **Live Progress Tracking**: Real-time table updates during cleanup operations
 - **Service-Specific Logic**: Tailored cleanup rules per AWS service
 - **Dependency Management**: Automatic cleanup of related resources
-- **Usage Analytics**: Lambda invocation history and CloudWatch metrics integration
+- **Multiple Entry Points**: CLI commands and interactive menu options
 
 ## Target Users
 

@@ -7,6 +7,7 @@ from .ebs_cleanup import run_ebs_cleanup
 from .cloudwatch_cleanup import run_cloudwatch_cleanup
 from .iam_cleanup import run_iam_cleanup
 from .main import main
+from .menu import interactive_menu
 
 __all__ = [
     "run_s3_cleanup",
@@ -16,6 +17,7 @@ __all__ = [
     "run_cloudwatch_cleanup",
     "run_iam_cleanup",
     "main",
+    "interactive_menu",
     "__version__"
 ]
 __version__ = "0.1.0"

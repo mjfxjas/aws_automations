@@ -11,6 +11,7 @@ setup(
     entry_points={
         "console_scripts": [
             "aws-cleanup=aws_automations.main:main",
+            "aws-cleanup-menu=aws_automations.start:interactive_menu",
         ],
     },
     python_requires=">=3.8",

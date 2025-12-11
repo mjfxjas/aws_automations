@@ -73,14 +73,23 @@ pytest --cov=aws_automations --cov-report=html
 
 ### Application Usage
 ```bash
-# Dry-run all services
+# Interactive menu (recommended)
+aws-cleanup-menu
+
+# Direct CLI - Dry-run all services
 aws-cleanup --config config.yaml
 
 # Apply changes to specific service
 aws-cleanup --config config.yaml --service s3 --apply
 
+# Interactive approval mode
+aws-cleanup --config config.yaml --interactive
+
 # JSON output with verbose logging
 aws-cleanup --config config.yaml --json --verbose
+
+# Live progress display
+aws-cleanup --config config.yaml --live
 ```
 
 ## AWS Integration

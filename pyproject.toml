@@ -40,6 +40,7 @@ dev = [
 
 [project.scripts]
 aws-cleanup = "aws_automations.main:main"
+aws-cleanup-menu = "aws_automations.start:interactive_menu"
 
 [project.urls]
 Homepage = "https://github.com/yourusername/aws-automations"

@@ -168,10 +168,12 @@ return summary
 ```python
 # __init__.py pattern
 from .service_cleanup import run_cleanup as run_service_cleanup
+from .menu import interactive_menu
 
 __all__ = [
     "run_service_cleanup",
     "main",
+    "interactive_menu",
     "__version__"
 ]
 __version__ = "0.1.0"
@@ -197,6 +199,35 @@ def ensure_tz(dt: datetime) -> datetime:
 # Usage
 now = datetime.now(timezone.utc)
 last_activity = ensure_tz(role["RoleLastUsed"]["LastUsedDate"])
+```
+
+## User Interface Patterns
+
+### Interactive Menu System (2/2 files)
+```python
+# Rich-based interactive prompts
+from rich.console import Console
+from rich.prompt import Prompt, Confirm
+from rich.table import Table
+
+# Service selection with validation
+choice = Prompt.ask(
+    "Select service to clean up",
+    choices=valid_services,
+    default="all"
+)
+
+# Safety confirmations
+dry_run = not Confirm.ask("Apply changes (default is dry-run only)", default=False)
+```
+
+### Live Progress Display (1/1 files)
+```python
+# Real-time table updates
+with Live(render_live_state(state, dry_run=not args.apply), console=console) as live:
+    live_instance = live
+    # Update progress during operations
+    live_instance.update(render_live_state(state, dry_run=not args.apply))
 ```
 
 ## Code Idioms
