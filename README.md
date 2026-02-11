@@ -113,6 +113,14 @@ aws-menu --help
 python3 -c "from importlib.metadata import version; print(version('aws-automations'))"
 ```
 
+## Security Checks
+- CI runs Bandit static security analysis on `aws_automations` (Python 3.11 job).
+- Failing threshold is set to medium-or-higher severity/confidence.
+
+```bash
+bandit -r aws_automations --severity-level medium --confidence-level medium
+```
+
 ## Changelog
 See `CHANGELOG.md` for versioned release notes.
 
