@@ -1,4 +1,4 @@
-# AWS Automations – Multi-Service Cleanup
+# AWS Automations - Multi-Service Cleanup
 
 Portfolio-ready AWS cleanup tool with safe defaults, dry-run first, and a live CLI view.
 
