@@ -9,7 +9,7 @@ description = "Multi-service AWS resource cleanup automation with dry-run safety
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
-    {name = "AWS Automations", email = "contact@example.com"}
+    {name = "Jonathan Schimpf", email = "jon@theatrico.org"}
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -45,9 +45,9 @@ aws-cleanup = "aws_automations.main:main"
 aws-menu = "aws_automations.menu:interactive_menu"
 
 [project.urls]
-Homepage = "https://github.com/yourusername/aws-automations"
-Repository = "https://github.com/yourusername/aws-automations"
-Issues = "https://github.com/yourusername/aws-automations/issues"
+Homepage = "https://github.com/mjfxjas/aws_automations"
+Repository = "https://github.com/mjfxjas/aws_automations"
+Issues = "https://github.com/mjfxjas/aws_automations/issues"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
