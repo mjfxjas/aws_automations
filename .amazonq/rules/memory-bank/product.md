@@ -1,70 +1,74 @@
 # AWS Automations - Product Overview
 
 ## Purpose
-AWS Automations is a portfolio-ready multi-service cleanup tool that automatically identifies and removes unused AWS resources across 6 core services. Built with a safety-first approach, it provides comprehensive resource management with configurable rules and dry-run capabilities.
-
-## Value Proposition
-- **Cost Optimization**: Automatically identifies and removes unused AWS resources to reduce monthly bills
-- **Safety First**: Dry-run by default with explicit `--apply` flag required for actual deletions
-- **Multi-Service Coverage**: Single tool handles S3, EC2, Lambda, EBS, CloudWatch Logs, and IAM cleanup
-- **Enterprise Ready**: Configurable filters, batch operations, and detailed reporting for production use
+AWS Automations is a portfolio-ready multi-service AWS resource cleanup tool designed for safe, controlled deletion of unused AWS resources. The tool prioritizes safety through dry-run defaults, interactive approvals, and comprehensive safety switches.
 
 ## Key Features
 
-### Core Capabilities
-- **Interactive Menu**: Rich-formatted guided interface for easy operation
-- **Dry-Run Mode**: All operations preview changes before execution
-- **Live Progress Display**: Real-time TTY rendering with Rich tables
-- **Configurable Filters**: Age-based retention, name patterns, tag requirements, and service-specific rules
-- **Batch Operations**: Efficient processing with AWS pagination and batching
-- **Detailed Reporting**: Comprehensive output with JSON format support
-- **Safety Switches**: Force flags required for destructive operations
+### Safety-First Design
+- **Dry-run by default** - All operations require explicit `--apply` flag for actual deletions
+- **Interactive approval** - Per-bucket/resource confirmation before deletion
+- **Safety switches** - Guards against zero retention and delete-all configurations
+- **Age gates** - Configurable retention periods for buckets and objects
 
-### Service Coverage
-1. **S3**: Bucket and object cleanup with versioning support
-2. **EC2**: Instance termination and volume cleanup
-3. **Lambda**: Function deletion with version management
-4. **EBS**: Volume and snapshot cleanup
-5. **CloudWatch Logs**: Log group and stream management
-6. **IAM**: Role, user, and policy cleanup with dependency handling
+### Multi-Service Support
+- **S3 Cleanup** - Buckets, objects, and versioned objects with prefix filtering
+- **EC2 Cleanup** - Instance termination and volume management
+- **Lambda Cleanup** - Function and layer cleanup
+- **IAM Cleanup** - Role, policy, and user management
+- **EBS Cleanup** - Volume and snapshot management
+- **CloudWatch Cleanup** - Log group and metric cleanup
 
-### Advanced Features
-- **Interactive Menu System**: Color-coded service selection with safety confirmations
-- **Live Progress Tracking**: Real-time table updates during cleanup operations
-- **Service-Specific Logic**: Tailored cleanup rules per AWS service
-- **Dependency Management**: Automatic cleanup of related resources
-- **Multiple Entry Points**: CLI commands and interactive menu options
+### Flexible Operation Modes
+- **Direct service execution** - Target specific AWS services individually
+- **Multi-service orchestrator** - Clean up all services with unified configuration
+- **Interactive menu** - Guided cleanup through CLI interface
+- **Live CLI view** - Real-time Rich table display with opt-out capability
+
+### Advanced Filtering
+- **Prefix-based filtering** - Target specific bucket/resource naming patterns
+- **Target/ignore lists** - Explicit inclusion/exclusion of resources
+- **Tag-based filtering** - Optional tag requirements for cleanup eligibility
+- **Batch processing** - Efficient handling of large resource sets
 
 ## Target Users
 
 ### DevOps Engineers
-- Automate resource cleanup in development and staging environments
-- Implement cost optimization strategies across AWS accounts
-- Maintain clean infrastructure with scheduled cleanup jobs
+- Managing development and staging environments
+- Cleaning up after CI/CD pipeline runs
+- Cost optimization through resource lifecycle management
 
-### Cloud Architects
-- Design cost-effective resource lifecycle management
-- Implement governance policies for resource retention
-- Ensure compliance with organizational cleanup standards
+### Cloud Administrators
+- Regular maintenance of AWS accounts
+- Compliance with data retention policies
+- Bulk cleanup operations with audit trails
 
-### Development Teams
-- Clean up temporary resources from testing and experimentation
-- Maintain organized development environments
-- Reduce AWS costs through automated resource management
+### Developers
+- Personal AWS account maintenance
+- Sandbox environment cleanup
+- Learning AWS resource management best practices
 
 ## Use Cases
 
 ### Development Environment Cleanup
-- Remove temporary EC2 instances and volumes after testing
-- Clean up S3 buckets from development workflows
-- Delete unused Lambda functions and their logs
+- Remove temporary buckets and objects after testing
+- Clean up EC2 instances from development workflows
+- Manage Lambda functions from experimental deployments
 
 ### Cost Optimization
-- Identify and remove aged resources across all services
-- Clean up orphaned EBS volumes and snapshots
-- Remove inactive IAM roles and policies
+- Identify and remove unused resources across multiple services
+- Implement automated cleanup policies with safety controls
+- Generate reports on resource usage patterns
 
 ### Compliance and Governance
-- Enforce retention policies across AWS services
+- Enforce data retention policies across AWS services
 - Maintain audit trails of cleanup operations
 - Ensure consistent resource naming and tagging standards
+
+### Disaster Recovery Testing
+- Clean up resources after DR testing scenarios
+- Validate backup and restore procedures
+- Maintain clean baseline environments
+
+## Value Proposition
+AWS Automations provides enterprise-grade safety controls for AWS resource cleanup while maintaining the flexibility needed for diverse operational requirements. The tool's dry-run first approach and comprehensive safety switches make it suitable for production environments where accidental deletions could be catastrophic.

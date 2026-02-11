@@ -1,42 +1,41 @@
 # AWS Automations - Technology Stack
 
 ## Programming Languages
-- **Python 3.8+**: Primary language with modern features
-- **YAML**: Configuration format for service settings
-- **Shell**: Development and deployment scripts
+
+### Python 3.8+
+- **Primary language** for all implementation
+- **Minimum version**: Python 3.8
+- **Supported versions**: 3.8, 3.9, 3.10, 3.11
+- **Type hints** used throughout codebase for better IDE support
 
 ## Core Dependencies
 
 ### Production Dependencies
-- **boto3 (>=1.29)**: AWS SDK for Python with service clients
-- **PyYAML (>=6.0)**: YAML configuration parsing
-- **rich (>=13.7)**: Enhanced terminal output and formatting
+- **boto3 >= 1.26.0** - AWS SDK for Python
+  - Primary interface for all AWS service interactions
+  - Handles authentication, pagination, and error handling
+- **PyYAML >= 6.0** - YAML configuration file parsing
+  - Human-readable configuration format
+  - Supports complex nested structures
 
 ### Development Dependencies
-- **pytest (>=7.0)**: Testing framework with fixtures
-- **pytest-cov (>=4.0)**: Code coverage reporting
-- **black (>=22.0)**: Code formatting and style enforcement
-- **flake8 (>=5.0)**: Linting and style checking
-- **mypy (>=1.0)**: Static type checking
+- **pytest >= 7.0.0** - Testing framework
+- **pytest-cov >= 4.0.0** - Code coverage reporting
+- **black >= 22.0.0** - Code formatting
+- **flake8 >= 5.0.0** - Linting and style checking
+- **mypy >= 1.0.0** - Static type checking
 
 ## Build System
 
-### Modern Packaging (pyproject.toml)
-```toml
-[build-system]
-requires = ["setuptools>=45", "wheel"]
-build-backend = "setuptools.build_meta"
-```
+### Modern Python Packaging
+- **pyproject.toml** - Primary project configuration
+- **setuptools >= 45** - Build backend
+- **wheel** - Distribution format
 
-### Legacy Support (setup.py)
-- Fallback for older Python environments
-- Console script entry point registration
-- Package discovery and installation
-
-### Version Management
-- **Version**: 0.1.0 (Beta release)
-- **Python Support**: 3.8, 3.9, 3.10, 3.11
-- **Semantic Versioning**: Major.Minor.Patch format
+### Legacy Support
+- **setup.py** - Maintained for backward compatibility
+- **requirements.txt** - Production dependency pinning
+- **requirements-dev.txt** - Development dependency management
 
 ## Development Commands
 
@@ -44,13 +43,11 @@ build-backend = "setuptools.build_meta"
 ```bash
 # Create virtual environment
 python3 -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate  # Linux/macOS
+# .venv\Scripts\activate   # Windows
 
 # Install development dependencies
 pip install -r requirements-dev.txt
-
-# Install package in development mode
-pip install -e .
 ```
 
 ### Code Quality
@@ -65,112 +62,127 @@ flake8 aws_automations/ tests/
 mypy aws_automations/
 
 # Run tests
-python -m pytest
+pytest
 
-# Coverage report
+# Run tests with coverage
 pytest --cov=aws_automations --cov-report=html
 ```
 
-### Application Usage
+### Package Installation
 ```bash
-# Interactive menu (recommended)
-aws-cleanup-menu
+# Development installation
+pip install -e .
 
-# Direct CLI - Dry-run all services
-aws-cleanup --config config.yaml
-
-# Apply changes to specific service
-aws-cleanup --config config.yaml --service s3 --apply
-
-# Interactive approval mode
-aws-cleanup --config config.yaml --interactive
-
-# JSON output with verbose logging
-aws-cleanup --config config.yaml --json --verbose
-
-# Live progress display
-aws-cleanup --config config.yaml --live
+# Production installation
+pip install .
 ```
 
-## AWS Integration
+## Console Scripts
 
-### Supported Services
-- **S3**: Buckets, objects, versioning, lifecycle
-- **EC2**: Instances, volumes, snapshots, AMIs
-- **Lambda**: Functions, versions, aliases, layers
-- **EBS**: Volumes, snapshots, encryption
-- **CloudWatch**: Log groups, log streams, metrics
-- **IAM**: Roles, users, policies, access keys
+### Entry Points
+- **aws-cleanup** - Multi-service orchestrator (`aws_automations.main:main`)
+- **aws-menu** - Interactive menu interface (`aws_automations.menu:interactive_menu`)
 
-### Authentication Methods
-- **AWS Credentials**: ~/.aws/credentials file
-- **Environment Variables**: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
-- **IAM Roles**: EC2 instance profiles, cross-account roles
-- **AWS CLI Profiles**: Named profile support
+### Usage Examples
+```bash
+# Multi-service cleanup
+aws-cleanup --config config.yaml --service all --apply
 
-### Permissions Required
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "s3:*",
-        "ec2:*",
-        "lambda:*",
-        "logs:*",
-        "iam:*"
-      ],
-      "Resource": "*"
-    }
-  ]
-}
+# Interactive menu
+aws-menu
 ```
 
 ## Configuration Management
 
-### YAML Schema
-- **Global Settings**: region_name, output preferences
-- **Service Blocks**: Individual service configuration
-- **Filter Options**: retention_days, patterns, tags
-- **Safety Settings**: batch limits, force flags
+### YAML Configuration
+- **config.yaml** - Active configuration
+- **config.example.yaml** - Template with documentation
+- Supports environment-specific overrides
+- Validation through Python schema checking
 
 ### Environment Variables
-- **AWS_REGION**: Override default region
-- **AWS_PROFILE**: Use specific AWS CLI profile
-- **CONFIG_PATH**: Custom configuration file location
+- **AWS credentials** - Standard AWS credential chain
+- **AWS_PROFILE** - Profile selection
+- **AWS_REGION** - Default region override
 
-## Testing Strategy
+## Testing Framework
 
-### Unit Tests
-- **Service Modules**: Individual cleanup logic testing
-- **Configuration**: YAML parsing and validation
-- **Filters**: Resource filtering and selection logic
-- **Mocking**: AWS API responses with boto3 stubber
+### Test Structure
+- **Unit tests** - Individual component testing
+- **Integration tests** - End-to-end workflow validation
+- **Mock testing** - AWS service interaction simulation
 
-### Integration Tests
-- **End-to-End**: Full cleanup workflow testing
-- **AWS Services**: Real AWS resource interaction
-- **Configuration**: Multiple config scenario testing
-- **Error Handling**: Failure mode and recovery testing
+### Test Configuration
+```toml
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+```
 
-### CI/CD Pipeline
-- **GitHub Actions**: Automated testing on push/PR
-- **Multi-Python**: Test across Python 3.8-3.11
-- **Code Quality**: Linting, formatting, type checking
-- **Coverage**: Minimum coverage thresholds
+## Code Style
 
-## Performance Considerations
+### Black Configuration
+```toml
+[tool.black]
+line-length = 120
+target-version = ['py38']
+```
 
-### Batch Operations
-- **S3**: 1000 objects per delete request
-- **EC2**: Parallel instance termination
-- **Lambda**: Concurrent function deletion
-- **Pagination**: Efficient large dataset handling
+### MyPy Configuration
+```toml
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+```
+
+## CI/CD Pipeline
+
+### GitHub Actions
+- **test.yml** - Automated testing workflow
+- Runs on multiple Python versions
+- Includes code quality checks
+- Generates coverage reports
+
+### Workflow Triggers
+- Pull request validation
+- Main branch protection
+- Release automation support
+
+## AWS Integration
+
+### Authentication Methods
+- **IAM roles** - Recommended for production
+- **Access keys** - Development and testing
+- **AWS CLI profiles** - Local development
+- **Instance profiles** - EC2-based execution
+
+### Required Permissions
+Service-specific IAM permissions for:
+- Resource enumeration (List* operations)
+- Resource deletion (Delete* operations)
+- Tag-based filtering (Get* operations)
 
 ### Rate Limiting
-- **AWS API Limits**: Respect service throttling
-- **Exponential Backoff**: Retry failed requests
-- **Concurrent Requests**: Balanced parallelism
-- **Resource Quotas**: Account limit awareness
+- Built-in retry logic with exponential backoff
+- Respects AWS API rate limits
+- Batch operations for efficiency
+
+## Deployment Options
+
+### Local Execution
+- Direct Python module execution
+- Virtual environment isolation
+- Configuration file management
+
+### Container Deployment
+- Dockerfile support (can be added)
+- Environment variable configuration
+- Credential mounting strategies
+
+### Lambda Deployment
+- Serverless execution model
+- Event-driven cleanup schedules
+- CloudWatch integration for monitoring

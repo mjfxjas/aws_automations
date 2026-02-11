@@ -1,8 +1,9 @@
-# AWS Automations – S3 Cleanup
+# AWS Automations – Multi-Service Cleanup
 
-Portfolio-ready S3 cleanup tool with safe defaults, dry-run first, and a live CLI view.
+Portfolio-ready AWS cleanup tool with safe defaults, dry-run first, and a live CLI view.
 
 ## Highlights
+- Multi-service cleanup for S3, EC2, Lambda, EBS, CloudWatch, and IAM
 - Dry-run by default; `--apply` required for deletions
 - Filters: prefixes, target/ignore lists, optional tag requirement
 - Age gates for buckets/objects; supports versioned buckets
@@ -14,7 +15,12 @@ Portfolio-ready S3 cleanup tool with safe defaults, dry-run first, and a live CL
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements-dev.txt
+pip install -U pip
+pip install -e ".[dev]"
+```
+Runtime-only (no dev tools):
+```bash
+pip install -e .
 ```
 
 ## Configure
@@ -58,7 +64,7 @@ python -m aws_automations.s3_cleanup --config config.yaml --no-live
 ## Run (Interactive Menu)
 Start the interactive menu for guided cleanup:
 ```bash
-aws-cleanup-menu
+aws-menu
 ```
 Or run directly:
 ```bash
@@ -67,6 +73,10 @@ python -m aws_automations.start
 
 ## Run (multi-service orchestrator)
 Clean up one or all services with a live table (default on TTY):
+```bash
+aws-cleanup --config config.yaml --service all --live
+```
+Or run via module:
 ```bash
 python -m aws_automations.main --config config.yaml --service all --live
 ```

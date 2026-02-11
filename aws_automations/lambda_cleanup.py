@@ -21,12 +21,12 @@ def function_matches_patterns(name: str, patterns: List[str]) -> bool:
     return any(fnmatch.fnmatch(name, pattern) for pattern in patterns)
 
 
-def function_has_required_tag(lambda_client, function_name: str, required_tag: dict) -> bool:
+def function_has_required_tag(lambda_client, function_arn: str, required_tag: dict) -> bool:
     if not required_tag:
         return True
     
     try:
-        response = lambda_client.list_tags(Resource=function_name)
+        response = lambda_client.list_tags(Resource=function_arn)
         tags = response.get("Tags", {})
         
         key = required_tag["key"]
@@ -63,7 +63,7 @@ def get_function_last_invocation(cloudwatch_client, function_name: str, days: in
         return None
 
 
-def should_target_function(function: dict, config: dict, now: datetime, cloudwatch_client) -> bool:
+def should_target_function(function: dict, config: dict, now: datetime, lambda_client, cloudwatch_client) -> bool:
     function_name = function["FunctionName"]
     
     # Check target/ignore lists
@@ -86,6 +86,9 @@ def should_target_function(function: dict, config: dict, now: datetime, cloudwat
             logger.debug("Skipping %s: recent invocation", function_name)
             return False
     
+    if not function_has_required_tag(lambda_client, function.get("FunctionArn", ""), config.get("require_tag")):
+        return False
+
     return True
 
 
@@ -160,8 +163,10 @@ def run_lambda_cleanup(
     cloudwatch_client = sess.client("cloudwatch", region_name=config.get("region_name"))
     logs_client = sess.client("logs", region_name=config.get("region_name"))
     
-    response = lambda_client.list_functions()
-    functions = response.get("Functions", [])
+    paginator = lambda_client.get_paginator("list_functions")
+    functions = []
+    for page in paginator.paginate():
+        functions.extend(page.get("Functions", []))
     
     summary = {
         "dry_run": dry_run,
@@ -175,7 +180,7 @@ def run_lambda_cleanup(
     for function in functions:
         function_name = function["FunctionName"]
         
-        if not should_target_function(function, config, now, cloudwatch_client):
+        if not should_target_function(function, config, now, lambda_client, cloudwatch_client):
             continue
         
         logger.info("Processing function %s", function_name)

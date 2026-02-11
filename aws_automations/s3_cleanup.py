@@ -272,7 +272,7 @@ def run_cleanup(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Clean up S3 buckets with safe defaults.")
-    parser.add_argument("--config", default="config.example.yaml", help="Path to cleanup config file")
+    parser.add_argument("--config", default="config.yaml", help="Path to cleanup config file")
     parser.add_argument(
         "--apply",
         action="store_true",

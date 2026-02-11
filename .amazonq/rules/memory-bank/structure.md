@@ -4,117 +4,125 @@
 
 ```
 aws_automations/
-├── .amazonq/rules/memory-bank/     # Amazon Q documentation
-├── .github/workflows/              # CI/CD pipeline
-├── aws_automations/               # Main package source
-├── tests/                         # Unit tests
-├── config.example.yaml           # Configuration template
-├── config.yaml                   # Active configuration
-├── pyproject.toml                # Modern Python packaging
-├── setup.py                      # Legacy packaging support
-└── requirements*.txt             # Dependencies
+├── aws_automations/          # Main package directory
+│   ├── __init__.py          # Package initialization
+│   ├── main.py              # Multi-service orchestrator entry point
+│   ├── menu.py              # Interactive CLI menu system
+│   ├── start.py             # Interactive menu launcher
+│   ├── config.py            # Configuration management and validation
+│   ├── s3_cleanup.py        # S3 service cleanup implementation
+│   ├── ec2_cleanup.py       # EC2 service cleanup implementation
+│   ├── lambda_cleanup.py    # Lambda service cleanup implementation
+│   ├── iam_cleanup.py       # IAM service cleanup implementation
+│   ├── ebs_cleanup.py       # EBS service cleanup implementation
+│   └── cloudwatch_cleanup.py # CloudWatch service cleanup implementation
+├── tests/                   # Test suite
+│   └── test_s3_cleanup.py   # S3 cleanup unit tests
+├── data_sources/            # Documentation and reference materials
+│   └── data_sources.md      # Data source documentation
+├── .github/workflows/       # CI/CD pipeline definitions
+│   └── test.yml            # GitHub Actions test workflow
+├── config.example.yaml      # Example configuration template
+├── config.yaml             # Active configuration file
+├── requirements.txt        # Production dependencies
+├── requirements-dev.txt    # Development dependencies
+├── setup.py               # Legacy setuptools configuration
+├── pyproject.toml         # Modern Python project configuration
+└── test_integration.py    # Integration test suite
 ```
 
 ## Core Components
 
-### Main Package (`aws_automations/`)
-- **`main.py`**: CLI entry point and argument parsing
-- **`menu.py`**: Interactive menu system with Rich UI
-- **`start.py`**: Entry point for interactive menu
-- **`config.py`**: Configuration loading and validation
-- **Service Modules**: Individual cleanup implementations
-  - `s3_cleanup.py` - S3 buckets and objects
-  - `ec2_cleanup.py` - EC2 instances and volumes
-  - `lambda_cleanup.py` - Lambda functions and versions
-  - `ebs_cleanup.py` - EBS volumes and snapshots
-  - `cloudwatch_cleanup.py` - CloudWatch logs
-  - `iam_cleanup.py` - IAM roles, users, policies
+### Entry Points
+- **main.py** - Multi-service orchestrator supporting all AWS services
+- **menu.py** - Interactive CLI interface for guided operations
+- **start.py** - Simplified launcher for interactive menu
+- **Individual service modules** - Direct service-specific cleanup tools
+
+### Service Modules
+Each service module follows a consistent pattern:
+- **Configuration parsing** - Service-specific settings validation
+- **Resource discovery** - AWS API integration for resource enumeration
+- **Filtering logic** - Apply inclusion/exclusion rules and age gates
+- **Safety checks** - Validate operations against safety switches
+- **Execution engine** - Perform dry-run or actual deletions with progress tracking
 
 ### Configuration System
-- **`config.example.yaml`**: Template with all available options
-- **`config.yaml`**: Active configuration (gitignored)
-- **Service-specific sections**: Each AWS service has dedicated config block
-- **Global settings**: Region, credentials, and cross-service options
-
-### Testing Infrastructure
-- **`tests/`**: Unit test suite with pytest
-- **`test_integration.py`**: Integration testing scenarios
-- **`.github/workflows/test.yml`**: Automated CI pipeline
+- **config.py** - Centralized configuration management
+- **YAML-based configuration** - Human-readable service settings
+- **Environment-specific configs** - Support for multiple deployment targets
+- **Validation framework** - Ensure configuration integrity before execution
 
 ## Architectural Patterns
 
-### Service Module Architecture
-Each service cleanup module follows a consistent pattern:
-```python
-class ServiceCleanup:
-    def __init__(self, config, session)
-    def list_resources(self) -> List[Resource]
-    def filter_resources(self, resources) -> List[Resource]
-    def delete_resources(self, resources, dry_run=True)
-    def generate_report(self) -> Dict
-```
+### Command Pattern
+Each service implements a consistent command interface:
+- Parse arguments and configuration
+- Validate safety requirements
+- Execute discovery phase
+- Apply filtering rules
+- Present plan to user
+- Execute with appropriate safety controls
 
-### Configuration Hierarchy
-1. **Global Config**: Region, credentials, output format
-2. **Service Config**: Service-specific retention rules
-3. **Runtime Args**: CLI overrides and safety flags
-4. **Environment**: AWS credentials and region fallbacks
+### Factory Pattern
+Service selection and instantiation through:
+- Dynamic module loading based on service parameter
+- Consistent interface across all service implementations
+- Centralized error handling and logging
 
-### Safety Architecture
-- **Dry-run Default**: All operations preview before execution
-- **Explicit Apply**: `--apply` flag required for deletions
-- **Force Flags**: Additional confirmation for destructive operations
-- **Batch Limits**: Configurable limits prevent accidental mass deletion
+### Strategy Pattern
+Multiple execution strategies:
+- **Dry-run strategy** - Simulation mode with detailed reporting
+- **Interactive strategy** - User confirmation for each operation
+- **Batch strategy** - Automated execution with safety controls
+- **Live UI strategy** - Real-time progress display
+
+### Observer Pattern
+Progress tracking and reporting:
+- Live table updates during execution
+- JSON output for programmatic consumption
+- Logging integration for audit trails
+- Error aggregation and reporting
 
 ## Component Relationships
 
-### CLI Flow
-```
-┌─ Interactive Menu ─┐    ┌─ Direct CLI ─┐
-│   menu.py          │    │   main.py    │
-│   start.py         │    │              │
-└────────┬───────────┘    └──────┬───────┘
-         │                       │
-         └───────┬───────────────┘
-                 ↓
-         config.py → service_modules → AWS APIs
-             ↓            ↓              ↓
-        validation   filtering      operations
-             ↓            ↓              ↓
-       error_handling  reporting    results
-```
+### Orchestrator Layer
+- **main.py** coordinates multiple service modules
+- Provides unified configuration and execution context
+- Handles cross-service dependencies and ordering
 
-### Service Integration
-- **Interactive Menu**: Rich-formatted guided interface (`aws-cleanup-menu`)
-- **Direct CLI**: Command-line interface (`aws-cleanup`)
-- **Independent Modules**: Each service can run standalone
-- **Shared Configuration**: Common config patterns across services
-- **Unified Reporting**: Consistent output format and structure
-- **Cross-Service Dependencies**: EC2 cleanup includes EBS volumes
+### Service Layer
+- Individual service modules operate independently
+- Share common configuration and safety frameworks
+- Implement service-specific AWS API interactions
 
-### Data Flow
-1. **Configuration Loading**: YAML → Python objects
-2. **Resource Discovery**: AWS APIs → Resource lists
-3. **Filtering**: Rules → Filtered resources
-4. **Operation**: Dry-run/Apply → Results
-5. **Reporting**: Results → JSON/Text output
+### Interface Layer
+- **menu.py** provides guided user experience
+- Command-line interfaces support automation scenarios
+- Output formatters support both human and machine consumption
+
+### Configuration Layer
+- **config.py** provides centralized settings management
+- YAML files enable environment-specific customization
+- Validation ensures operational safety
 
 ## Extension Points
 
 ### Adding New Services
-1. Create `{service}_cleanup.py` module
-2. Implement standard cleanup interface
-3. Add configuration section to YAML schema
-4. Register in main CLI dispatcher
+1. Create new service module following existing patterns
+2. Implement standard interface methods
+3. Add service configuration schema
+4. Update orchestrator service registry
+5. Add corresponding menu options
 
-### Custom Filters
-- Extend filter methods in service modules
-- Add new configuration options
-- Implement tag-based or metadata filtering
-- Support regex patterns and complex rules
+### Custom Filtering
+- Extend filtering logic in service modules
+- Add new configuration parameters
+- Implement custom tag-based rules
+- Support complex resource selection criteria
 
 ### Output Formats
-- Extend reporting methods
-- Add new output formatters
-- Implement custom report templates
-- Support external integrations (webhooks, APIs)
+- Add new formatters for different output needs
+- Integrate with external reporting systems
+- Support custom audit trail formats
+- Enable integration with monitoring tools

@@ -25,22 +25,24 @@ classifiers = [
 ]
 requires-python = ">=3.8"
 dependencies = [
-    "boto3>=1.26.0",
-    "PyYAML>=6.0"
+    "boto3>=1.29,<2.0",
+    "PyYAML>=6.0,<7.0",
+    "rich>=13.7,<14.0"
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=7.0.0",
-    "pytest-cov>=4.0.0",
-    "black>=22.0.0",
-    "flake8>=5.0.0",
-    "mypy>=1.0.0"
+    "pytest>=7.4,<9.0",
+    "pytest-cov>=4.0,<5.0",
+    "black>=22.0.0,<24.0",
+    "flake8>=5.0.0,<7.0",
+    "mypy>=1.0.0,<2.0",
+    "moto[s3]>=5.0,<6.0"
 ]
 
 [project.scripts]
 aws-cleanup = "aws_automations.main:main"
-aws-cleanup-menu = "aws_automations.start:interactive_menu"
+aws-menu = "aws_automations.menu:interactive_menu"
 
 [project.urls]
 Homepage = "https://github.com/yourusername/aws-automations"

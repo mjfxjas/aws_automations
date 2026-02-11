@@ -123,10 +123,11 @@ def run_ec2_cleanup(
     sess = session or boto3.Session(region_name=config.get("region_name"))
     ec2_client = sess.client("ec2", region_name=config.get("region_name"))
     
-    response = ec2_client.describe_instances()
+    paginator = ec2_client.get_paginator("describe_instances")
     instances = []
-    for reservation in response["Reservations"]:
-        instances.extend(reservation["Instances"])
+    for page in paginator.paginate():
+        for reservation in page.get("Reservations", []):
+            instances.extend(reservation.get("Instances", []))
     
     summary = {
         "dry_run": dry_run,

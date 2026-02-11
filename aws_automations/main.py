@@ -6,7 +6,7 @@ import json
 import logging
 import sys
 from pathlib import Path
-from typing import Callable, Dict
+from typing import Callable, Dict, List, Optional
 
 import yaml
 from rich import box
@@ -20,7 +20,11 @@ from .ebs_cleanup import run_ebs_cleanup
 from .ec2_cleanup import run_ec2_cleanup
 from .iam_cleanup import run_iam_cleanup
 from .lambda_cleanup import run_lambda_cleanup
-from .s3_cleanup import run_cleanup as run_s3_cleanup
+from .s3_cleanup import (
+    run_cleanup as run_s3_cleanup,
+    render_plan as render_s3_plan,
+    prompt_bucket_selection as prompt_s3_bucket_selection,
+)
 
 logger = logging.getLogger("aws_automations")
 
@@ -44,7 +48,11 @@ def parse_args() -> argparse.Namespace:
                        default="all", help="Service to clean up")
     parser.add_argument("--json", action="store_true", help="Output results as JSON")
     parser.add_argument("--verbose", action="store_true", help="Enable debug logging")
-    parser.add_argument("--interactive", action="store_true", help="Enable interactive approval for each resource")
+    parser.add_argument(
+        "--interactive",
+        action="store_true",
+        help="Enable interactive approval for S3 buckets (requires --apply)",
+    )
     parser.add_argument(
         "--live",
         action=argparse.BooleanOptionalAction,
@@ -61,11 +69,63 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def run_s3_with_optional_interactive(
+    s3_config,
+    *,
+    dry_run: bool,
+    buckets_override: Optional[List[str]] = None,
+    interactive: bool = False,
+    json_output: bool = False,
+    progress_callback: Callable[[Dict[str, object]], None] | None = None,
+) -> dict:
+    collect_details = json_output
+    if not interactive:
+        return run_s3_cleanup(
+            s3_config,
+            dry_run=dry_run,
+            buckets_override=buckets_override,
+            collect_details=collect_details,
+            progress_callback=progress_callback,
+        )
+
+    plan_summary = run_s3_cleanup(
+        s3_config,
+        dry_run=True,
+        buckets_override=buckets_override,
+        collect_details=True,
+    )
+    render_s3_plan(plan_summary, s3_config, json_output=json_output)
+
+    if dry_run:
+        logger.info("Interactive mode requires --apply; showing plan only.")
+        return plan_summary
+    if not plan_summary.get("bucket_reports"):
+        logger.info("No buckets matched filters; nothing to approve.")
+        return plan_summary
+
+    approved = prompt_s3_bucket_selection(plan_summary["bucket_reports"])
+    if not approved:
+        logger.info("No buckets approved; exiting.")
+        return plan_summary
+
+    return run_s3_cleanup(
+        s3_config,
+        dry_run=dry_run,
+        buckets_override=approved,
+        collect_details=collect_details,
+        progress_callback=progress_callback,
+    )
+
+
 def run_service_cleanup(
     service: str,
     config: dict,
     dry_run: bool,
     progress_callback: Callable[[Dict[str, object]], None] | None = None,
+    *,
+    buckets_override: Optional[List[str]] = None,
+    interactive: bool = False,
+    json_output: bool = False,
 ) -> dict:
     """Run cleanup for a specific service."""
     service_config = config.get(service, {})
@@ -77,11 +137,25 @@ def run_service_cleanup(
         if "s3" not in config:
             # Old format - convert to new format
             s3_config = CleanupConfig.from_dict(config)
-            return run_s3_cleanup(s3_config, dry_run=dry_run, progress_callback=progress_callback)
+            return run_s3_with_optional_interactive(
+                s3_config,
+                dry_run=dry_run,
+                buckets_override=buckets_override,
+                interactive=interactive,
+                json_output=json_output,
+                progress_callback=progress_callback,
+            )
         else:
             # New format
             s3_config = CleanupConfig.from_dict(service_config)
-            return run_s3_cleanup(s3_config, dry_run=dry_run, progress_callback=progress_callback)
+            return run_s3_with_optional_interactive(
+                s3_config,
+                dry_run=dry_run,
+                buckets_override=buckets_override,
+                interactive=interactive,
+                json_output=json_output,
+                progress_callback=progress_callback,
+            )
     elif service == "ec2":
         return run_ec2_cleanup(service_config, dry_run=dry_run, progress_callback=progress_callback)
     elif service == "lambda":
@@ -184,6 +258,8 @@ def main() -> None:
     # Run cleanup
     services = ["s3", "ec2", "lambda", "ebs", "cloudwatch", "iam"] if args.service == "all" else [args.service]
     results = {}
+    if args.interactive and "s3" not in services:
+        logger.info("Interactive mode is only supported for S3 buckets.")
 
     def make_progress_callback(service_name: str) -> Callable[[Dict[str, object]], None]:
         def _cb(report: Dict[str, object]) -> None:
@@ -207,6 +283,9 @@ def main() -> None:
                             config,
                             dry_run=not args.apply,
                             progress_callback=make_progress_callback(service),
+                            buckets_override=args.bucket,
+                            interactive=args.interactive,
+                            json_output=args.json,
                         )
                         results[service] = result
                         if not args.json:
@@ -218,7 +297,14 @@ def main() -> None:
             for service in services:
                 logger.info(f"Running {service} cleanup...")
                 try:
-                    result = run_service_cleanup(service, config, dry_run=not args.apply)
+                    result = run_service_cleanup(
+                        service,
+                        config,
+                        dry_run=not args.apply,
+                        buckets_override=args.bucket,
+                        interactive=args.interactive,
+                        json_output=args.json,
+                    )
                     results[service] = result
                     
                     if not args.json:

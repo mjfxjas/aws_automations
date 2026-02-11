@@ -119,12 +119,16 @@ def run_ebs_cleanup(
     ec2_client = sess.client("ec2", region_name=config.get("region_name"))
     
     # Get volumes
-    volumes_response = ec2_client.describe_volumes()
-    volumes = volumes_response.get("Volumes", [])
+    volumes = []
+    volumes_paginator = ec2_client.get_paginator("describe_volumes")
+    for page in volumes_paginator.paginate():
+        volumes.extend(page.get("Volumes", []))
     
     # Get snapshots (only owned by this account)
-    snapshots_response = ec2_client.describe_snapshots(OwnerIds=["self"])
-    snapshots = snapshots_response.get("Snapshots", [])
+    snapshots = []
+    snapshots_paginator = ec2_client.get_paginator("describe_snapshots")
+    for page in snapshots_paginator.paginate(OwnerIds=["self"]):
+        snapshots.extend(page.get("Snapshots", []))
     
     summary = {
         "dry_run": dry_run,

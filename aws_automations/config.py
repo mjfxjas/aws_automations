@@ -38,6 +38,11 @@ class CleanupConfig:
             raise FileNotFoundError(f"Config file not found: {config_path}")
 
         raw = yaml.safe_load(config_path.read_text()) or {}
+        if isinstance(raw, dict) and isinstance(raw.get("s3"), dict):
+            s3_raw = dict(raw["s3"])
+            if "region_name" in raw and "region_name" not in s3_raw:
+                s3_raw["region_name"] = raw["region_name"]
+            raw = s3_raw
         return CleanupConfig.from_dict(raw)
 
     @staticmethod
