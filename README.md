@@ -1,5 +1,8 @@
 # AWS Automations - Multi-Service Cleanup
 
+[![CI](https://github.com/mjfxjas/aws_automations/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/mjfxjas/aws_automations/actions/workflows/test.yml)
+[![PyPI](https://img.shields.io/pypi/v/aws-automations.svg)](https://pypi.org/project/aws-automations/)
+
 Portfolio-ready AWS cleanup tool with safe defaults, dry-run first, and a live CLI view.
 
 ## Highlights
@@ -99,6 +102,19 @@ Add `--verbose` for debug logs.
 ```bash
 python -m pytest
 ```
+
+## Smoke Test
+Quick verification that install and CLI wiring are healthy:
+
+```bash
+python3 -m pip install --upgrade aws-automations
+aws-cleanup --help
+aws-menu --help
+python3 -c "from importlib.metadata import version; print(version('aws-automations'))"
+```
+
+## Changelog
+See `CHANGELOG.md` for versioned release notes.
 
 ## Notes
 - Uses paginated, batched deletes (S3 limits batches to 1,000 objects).
