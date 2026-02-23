@@ -57,4 +57,4 @@ config.yaml
 .pytest_cache/
 .coverage
 htmlcov/
-.tox/
+.tox/.direnv/
