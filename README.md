@@ -103,6 +103,23 @@ Add `--verbose` for debug logs.
 python -m pytest
 ```
 
+## Common Safety-First Workflow
+A practical sequence for using the tool without surprises:
+
+```bash
+# 1) inspect config
+cat config.yaml
+
+# 2) dry-run a single service
+aws-cleanup --config config.yaml --service s3 --live
+
+# 3) switch to JSON if you want machine-readable output
+aws-cleanup --config config.yaml --service s3 --json
+
+# 4) only then apply with explicit flags
+aws-cleanup --config config.yaml --service s3 --apply
+```
+
 ## Smoke Test
 Quick verification that install and CLI wiring are healthy:
 
