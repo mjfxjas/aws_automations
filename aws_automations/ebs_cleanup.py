@@ -158,7 +158,8 @@ def run_ebs_cleanup(
                 }
             )
         
-        if delete_volume(ec2_client, volume_id, dry_run):
+        deleted = delete_volume(ec2_client, volume_id, dry_run)
+        if deleted:
             summary["volumes_deleted"] += 1
 
         if progress_callback:
@@ -166,8 +167,8 @@ def run_ebs_cleanup(
                 {
                     "resource": volume_id,
                     "resource_type": "volume",
-                    "status": "completed",
-                    "deleted": 1 if not dry_run else 0,
+                    "status": "planned" if dry_run else ("completed" if deleted else "failed"),
+                    "deleted": int(deleted),
                 }
             )
         
@@ -195,7 +196,8 @@ def run_ebs_cleanup(
                 }
             )
         
-        if delete_snapshot(ec2_client, snapshot_id, dry_run):
+        deleted = delete_snapshot(ec2_client, snapshot_id, dry_run)
+        if deleted:
             summary["snapshots_deleted"] += 1
         
         summary["snapshot_reports"].append({
@@ -209,8 +211,8 @@ def run_ebs_cleanup(
                 {
                     "resource": snapshot_id,
                     "resource_type": "snapshot",
-                    "status": "completed",
-                    "deleted": 1 if not dry_run else 0,
+                    "status": "planned" if dry_run else ("completed" if deleted else "failed"),
+                    "deleted": int(deleted),
                 }
             )
     
