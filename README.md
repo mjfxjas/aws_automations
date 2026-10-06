@@ -145,3 +145,6 @@ See `CHANGELOG.md` for versioned release notes.
 - Uses paginated, batched deletes (S3 limits batches to 1,000 objects).
 - Live UI is disabled automatically for JSON output or when stdout is not a TTY.
 - Keep AWS credentials scoped to the buckets you intend to manage.
+
+- S3 cleanup counts successful quiet-mode deletions and logs each rejected key.
+- Dry-run counts remain planned deletions; no delete calls are issued.

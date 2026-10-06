@@ -132,7 +132,14 @@ def delete_objects(s3_client, bucket: str, objects: List[dict], dry_run: bool, b
             continue
 
         resp = s3_client.delete_objects(Bucket=bucket, Delete={"Objects": batch, "Quiet": True})
-        deleted += len(resp.get("Deleted", []))
+        errors = resp.get("Errors", [])
+        # Quiet responses omit successful keys and contain only failed deletes.
+        deleted += len(batch) - len(errors)
+        for error in errors:
+            logger.warning(
+                "Could not delete %s from %s: %s (%s)",
+                error.get("Key"), bucket, error.get("Message"), error.get("Code"),
+            )
     return deleted
 
 

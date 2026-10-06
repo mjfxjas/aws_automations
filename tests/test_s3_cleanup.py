@@ -100,3 +100,37 @@ def test_tag_filter_limits_scope(s3_client):
     assert summary["objects_deleted"] >= 1
     assert tagged_objects.get("KeyCount", 0) == 0
     assert untagged_objects.get("KeyCount", 0) == 1
+
+
+def test_quiet_delete_counts_successes_without_deleted_entries():
+    from unittest.mock import Mock
+    from aws_automations.s3_cleanup import delete_objects
+
+    client = Mock()
+    client.delete_objects.return_value = {}
+    objects = [{"Key": "first"}, {"Key": "second"}, {"Key": "third"}]
+    assert delete_objects(client, "test-bucket", objects, False, 2) == 3
+    assert client.delete_objects.call_count == 2
+    assert client.delete_objects.call_args_list[0].kwargs["Delete"]["Quiet"] is True
+
+
+def test_quiet_delete_excludes_and_logs_failed_keys(caplog):
+    from unittest.mock import Mock
+    from aws_automations.s3_cleanup import delete_objects
+
+    client = Mock()
+    client.delete_objects.return_value = {
+        "Errors": [{"Key": "blocked", "Code": "AccessDenied", "Message": "denied"}]
+    }
+    assert delete_objects(client, "test-bucket", [{"Key": "ok"}, {"Key": "blocked"}], False, 2) == 1
+    assert "blocked" in caplog.text
+    assert "AccessDenied" in caplog.text
+
+
+def test_dry_run_counts_planned_keys_without_deleting():
+    from unittest.mock import Mock
+    from aws_automations.s3_cleanup import delete_objects
+
+    client = Mock()
+    assert delete_objects(client, "test-bucket", [{"Key": "kept"}], True, 1000) == 1
+    client.delete_objects.assert_not_called()
