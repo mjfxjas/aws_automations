@@ -159,7 +159,8 @@ def run_ec2_cleanup(
                 }
             )
         
-        if terminate_instance(ec2_client, instance_id, dry_run):
+        terminated = terminate_instance(ec2_client, instance_id, dry_run)
+        if terminated:
             summary["instances_terminated"] += 1
             
             # Delete associated volumes if configured
@@ -172,9 +173,9 @@ def run_ec2_cleanup(
                 {
                     "resource": instance_id,
                     "resource_type": "instance",
-                    "status": "completed",
+                    "status": "planned" if dry_run else ("completed" if terminated else "failed"),
                     "volumes": len(volumes),
-                    "deleted": 1 if not dry_run else 0,
+                    "deleted": int(terminated),
                 }
             )
         
