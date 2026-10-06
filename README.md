@@ -3,9 +3,9 @@
 [![CI](https://github.com/mjfxjas/aws_automations/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/mjfxjas/aws_automations/actions/workflows/test.yml)
 [![PyPI](https://img.shields.io/pypi/v/aws-automations.svg)](https://pypi.org/project/aws-automations/)
 
-Portfolio-ready AWS cleanup tool with safe defaults, dry-run first, and a live CLI view.
+CLI for cleaning up S3, EC2, Lambda, EBS, CloudWatch, and IAM resources. Runs in dry-run mode unless `--apply` is set.
 
-## Highlights
+## Features
 - Multi-service cleanup for S3, EC2, Lambda, EBS, CloudWatch, and IAM
 - Dry-run by default; `--apply` required for deletions
 - Filters: prefixes, target/ignore lists, optional tag requirement
@@ -103,8 +103,8 @@ Add `--verbose` for debug logs.
 python -m pytest
 ```
 
-## Common Safety-First Workflow
-A practical sequence for using the tool without surprises:
+## Example Workflow
+Inspect the configuration and preview changes before applying them:
 
 ```bash
 # 1) inspect config
@@ -121,7 +121,7 @@ aws-cleanup --config config.yaml --service s3 --apply
 ```
 
 ## Smoke Test
-Quick verification that install and CLI wiring are healthy:
+Verify the installed package and CLI:
 
 ```bash
 python3 -m pip install --upgrade aws-automations
